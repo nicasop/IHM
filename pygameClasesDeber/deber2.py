@@ -96,6 +96,17 @@ class Juego:
         # Setea la nave
         self.nave = Nave(self)
         self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
+        # Sonidos
+        self.fondo = pygame.mixer.Sound("guitarra.wav") #Sonido de Fondo
+        # movimiento_nave = pygame.mixer.Sound("guitarra.wav") #sonido de la nave
+        self.choque_nave = pygame.mixer.Sound("ouch.wav") #sonido de la choque
+
+        # volumen
+        self.fondo.set_volume(1)
+
+        #bucle
+        self.fondo.play(-1)
+
     
     def _pause(self):
         paused = True
@@ -131,6 +142,7 @@ class Juego:
     def control_colision(self):
         for meteoro in self.meteoros:
             if self.nave.rectangulo().colliderect(meteoro.rectangulo()):
+                self.choque_nave.play(0)
                 return True
         return False
                 
@@ -161,6 +173,8 @@ class Juego:
                 self.display_surface.fill(BLACK)
                 self.desplegar_mensage('Perdiste, Intenta Nuevamente')
                 self.desplegar_Creditos('ELABORADO POR: Anthony Grijalva - Sebastian Sandoval - Alexis Villavicencio')
+                self.choque_nave.stop()
+                self.fondo.stop()
             elif contador_c >= MAX_NUMBER_CYCLES:
                 self.display_surface.fill(BLACK)
                 self.desplegar_mensage('Ganaste Felicitaciones')
