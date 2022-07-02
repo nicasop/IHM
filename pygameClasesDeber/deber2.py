@@ -96,17 +96,6 @@ class Juego:
         # Setea la nave
         self.nave = Nave(self)
         self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
-        # Sonidos
-        self.fondo = pygame.mixer.Sound("guitarra.wav") #Sonido de Fondo
-        # movimiento_nave = pygame.mixer.Sound("guitarra.wav") #sonido de la nave
-        self.choque_nave = pygame.mixer.Sound("ouch.wav") #sonido de la choque
-
-        # volumen
-        self.fondo.set_volume(1)
-
-        #bucle
-        self.fondo.play(-1)
-
     
     def _pause(self):
         paused = True
@@ -142,14 +131,17 @@ class Juego:
     def control_colision(self):
         for meteoro in self.meteoros:
             if self.nave.rectangulo().colliderect(meteoro.rectangulo()):
-                self.choque_nave.play(0)
                 return True
         return False
                 
     def play(self):
         is_running = True
         contador_c = 0
-        while is_running:
+        fin = True
+        colision = False
+        ganador = False
+
+        while is_running and not colision and not ganador:
             contador_c = contador_c + 1
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -169,32 +161,45 @@ class Juego:
                         self._pause()
 
              
-            if self.control_colision():
+            colision = self.control_colision()
+            ganador = True if contador_c >= MAX_NUMBER_CYCLES else False
+
+            self.display_surface.blit(self.fond,(0,0))
+            for meteoro in self.meteoros:
+                meteoro.dibuja()
+            # Dibuja la nave
+            self.nave.dibuja()
+            for meteoro in self.meteoros:
+                meteoro.mover_down()
+            self.desplegar_tiempo(contador_c)
+
+            if contador_c % NEW_METEOR_CYCLE_INTERVAL == 0:
+                self.meteoros.append(Meteoro(self))
+
+            # define la velocidad de fotogramas
+            self.clock.tick(FRAME_REFRESH_RATE)
+            pygame.display.update()
+        
+        while fin:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    fin = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        fin = False
+
+            if colision:
                 self.display_surface.fill(BLACK)
                 self.desplegar_mensage('Perdiste, Intenta Nuevamente')
                 self.desplegar_Creditos('ELABORADO POR: Anthony Grijalva - Sebastian Sandoval - Alexis Villavicencio')
-                self.choque_nave.stop()
-                self.fondo.stop()
-            elif contador_c >= MAX_NUMBER_CYCLES:
+            elif ganador:
                 self.display_surface.fill(BLACK)
                 self.desplegar_mensage('Ganaste Felicitaciones')
                 self.desplegar_Creditos('ELABORADO POR: Anthony Grijalva - Sebastian Sandoval - Alexis Villavicencio')
-            else:
-                self.display_surface.blit(self.fond,(0,0))
-                for meteoro in self.meteoros:
-                    meteoro.dibuja()
-                # Dibuja la nave
-                self.nave.dibuja()
-                for meteoro in self.meteoros:
-                    meteoro.mover_down()
-                self.desplegar_tiempo(contador_c)
 
-                if contador_c % NEW_METEOR_CYCLE_INTERVAL == 0:
-                    self.meteoros.append(Meteoro(self))
-
-                # define la velocidad de fotogramas
-                self.clock.tick(FRAME_REFRESH_RATE)
+            self.clock.tick(FRAME_REFRESH_RATE)
             pygame.display.update()
+
         pygame.quit()
 
 def main():
