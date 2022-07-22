@@ -95,7 +95,7 @@ class Juego:
         self.clock = pygame.time.Clock()
         # Setea la nave
         self.nave = Nave(self)
-        self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
+        # self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
         # Sonidos
         self.fondo = pygame.mixer.Sound("fondo.wav") #Sonido de Fondo
         self.choque_nave = pygame.mixer.Sound("choque.mp3") #sonido de la choque
@@ -127,6 +127,14 @@ class Juego:
         texto_rectangle.center = (DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2)
         self.display_surface.blit(texto_surface, texto_rectangle)
 
+    def desplegar_mensage1(self, mensaje):
+        texto_font = pygame.font.Font("freesansbold.ttf", 48)
+        texto_surface = texto_font.render(mensaje, True, (125, 125, 125))
+        texto_rectangle = texto_surface.get_rect()
+        texto_rectangle.center = (DISPLAY_WIDTH / 2, (DISPLAY_HEIGHT / 2) + texto_rectangle.height )
+        self.display_surface.blit(texto_surface, texto_rectangle)
+
+
     def desplegar_tiempo(self,cont):
         texto_font = pygame.font.SysFont("candara", 20)
         texto_font.set_bold(True)
@@ -150,11 +158,39 @@ class Juego:
         return False
                 
     def play(self):
-        is_running = True
+        is_running = False
         contador_c = 0
-        fin = True
+        fin = False
         colision = False
         ganador = False
+        eleccion = True
+
+        while eleccion:
+            self.display_surface.fill(BLACK)
+            self.desplegar_mensage('Eliga la dificultad')
+            self.desplegar_mensage1('Presione la tecla F para la dificultad fácil')
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    eleccion = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_q:
+                        eleccion = False
+                    if event.key == pygame.K_d:
+                        print('dificil')
+                        INITIAL_NUMBER_OF_METEORS = 4
+                        MAX_NUMBER_CYCLES = 800
+                        self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
+                        eleccion = False
+                        is_running = True
+                    elif event.key == pygame.K_f:
+                        print('facil')
+                        INITIAL_NUMBER_OF_METEORS = 1
+                        MAX_NUMBER_CYCLES = 100
+                        self.meteoros = [Meteoro(self) for _ in range(0, INITIAL_NUMBER_OF_METEORS)]
+                        eleccion = False
+                        is_running = True
+            self.clock.tick(FRAME_REFRESH_RATE)
+            pygame.display.update()
 
         while is_running and not colision and not ganador:
             contador_c = contador_c + 1
@@ -178,6 +214,9 @@ class Juego:
              
             colision = self.control_colision()
             ganador = True if contador_c >= MAX_NUMBER_CYCLES else False
+
+            if colision or ganador:
+                fin = True
 
             self.display_surface.blit(self.fond,(0,0))
             for meteoro in self.meteoros:
